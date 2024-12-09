@@ -1,17 +1,15 @@
 import random
 
 class Daphne:
-    def __init__(self, vocab: set[str], random_seed: bool = True):
+    def __init__(self, vocab: set[str], seed: int = 0):
         self.vocab = vocab
 
-        # for testing purposes
-        if not random_seed:
-            random.seed(0)
+        random.seed(seed)
 
         self.unicode_list = self.get_unicode()
         
         # number of unicode characters that can be used per character so that each character is not represented by the same unicode character
-        self.num_uni_per_char = int(len(self.unicode_list) / len(self.vocab))
+        self.num_uni_per_char = int(len(self.unicode_list) / len(self.vocab)) - 1
 
         if self.num_uni_per_char < 1:
             raise ValueError("The character vocab is larger than the unicode list")
@@ -45,31 +43,77 @@ class Daphne:
             unicode_val = self.unicode_list.pop()
 
             self.char_to_uni[char] = []
-            for _ in range(self.num_uni_per_char - 1):
+            for _ in range(self.num_uni_per_char):
                 unicode_val = next(unicode_iter)
                 self.char_to_uni[char].append(unicode_val)
                 self.uni_to_char[unicode_val] = char
     
-    def encode(self, data: str) -> str:
+    def encode_full_seq(self, data: list[str], p: float) -> list[str]:
         """
-        Encodes the data using the character to unicode map
+        Encodes p percent of the data by encoding the entire sequence
         """
-        encoded_data = ""
-        for char in data:
-            if char not in self.char_to_uni.keys():
-                raise ValueError("Character not in character vocab")
+        encoded_data = []
+        for seq in data:
+            if random.random() > p:
+                encoded_data.append(seq)
+            else:
+                encoded_seq = ""
+                for char in seq:
+                    if char not in self.char_to_uni.keys():
+                        raise ValueError(f"Character '{char}' not in character vocab")
 
-            encoded_data += self.char_to_uni[char][random.randint(0, self.num_uni_per_char - 1)]
-        
+                    encoded_seq += self.char_to_uni[char][random.randint(0, self.num_uni_per_char - 1)]
+                encoded_data.append(encoded_seq)
         return encoded_data
     
-    def decode(self, data: str) -> str:
+    def encode_words(self, data: list[str], p: float) -> list[str]:
+        """
+        Encodes p percent of the data by encoding words in the sequence
+        """
+        encoded_data = []
+        for seq in data:
+            encoded_seq = ""
+            for word in seq.split(" "):
+                if random.random() > p:
+                    encoded_seq += word
+                else:
+                    for char in word:
+                        if char not in self.char_to_uni.keys():
+                            raise ValueError(f"Character '{char}' not in character vocab")
+
+                        encoded_seq += self.char_to_uni[char][random.randint(0, self.num_uni_per_char - 1)]
+                encoded_seq += " "
+            encoded_data.append(encoded_seq[:-1])
+        return encoded_data
+    
+    def encode_letters(self, data: list[str], p: float) -> list[str]:
+        """
+        Encodes p percent of the data by encoding letters in the sequence
+        """
+        encoded_data = []
+        for seq in data:
+            encoded_seq = ""
+            for char in seq:
+                if random.random() > p:
+                    encoded_seq += char
+                else:
+                    if char not in self.char_to_uni.keys():
+                        raise ValueError(f"Character '{char}' not in character vocab")
+
+                    encoded_seq += self.char_to_uni[char][random.randint(0, self.num_uni_per_char - 1)]
+            encoded_data.append(encoded_seq)
+        return encoded_data
+    
+    def decode(self, data: list[str]) -> list[str]:
         """
         Decodes the data using the unicode to character map
         """
-        decoded_data = ""
+        decoded_data = []
         
-        for char in data:
-            decoded_data += self.uni_to_char[char]
+        for seq in data:
+            decoded_seq = ""
+            for char in seq:
+                decoded_seq += self.uni_to_char.get(char, char)
+            decoded_data.append(decoded_seq)
 
         return decoded_data
