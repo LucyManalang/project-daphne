@@ -16,6 +16,8 @@ if __name__ == "__main__":
                         help="Percentages to use for encoding, comma seperated")
     parser.add_argument("--seed", type=int,
                         help="Seed for rng")
+    parser.add_argument("--generate", action="store_true", 
+                        help="Generate text using the transformer")
 args = parser.parse_args()
 
 if args.seed:
@@ -49,22 +51,40 @@ if args.demo:
     decoded = daphne.decode(encoded)
     print("decoded_letters:", decoded, "\n")
     
+elif args.generate:
+    for p in args.p.split(","):
+        p = float(p)
+        encoder = FileEncoder()
+
+        if args.method == "seq":
+            train_data = encoder.encode_seq(p)
+            
+        elif args.method == "words":
+            train_data = encoder.encode_words(p)
+
+        elif args.method == "letters":
+            train_data = encoder.encode_letters(p)
+        
+        transformer = Transformer(train_data, seed, generate=True, prompt="The")
+        print(f"Percentage: {p}")
+        print(f"Generated text: {transformer.gen_text}")
+        
 elif args.method:
     for p in args.p.split(","):
         p = float(p)
         encoder = FileEncoder()
-        valid_data = encoder.get_valid_data()
+        valid_data = FileEncoder("brown-valid.txt").raw_data
 
         if args.method == "seq":
-            encoded = encoder.encode_seq(p)
+            train_data = encoder.encode_seq(p)
             
         elif args.method == "words":
-            encoded = encoder.encode_words(p)
+            train_data = encoder.encode_words(p)
 
         elif args.method == "letters":
-            encoded = encoder.encode_letters(p)
+            train_data = encoder.encode_letters(p)
 
-        transformer = Transformer(encoded, valid_data, seed)
+        transformer = Transformer(train_data, seed, valid_data=valid_data)
 
         print(f"Percentage: {p}")
         print(f"Perplexity: {transformer.perplexity}")
