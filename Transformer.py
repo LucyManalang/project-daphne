@@ -1,7 +1,6 @@
 import datasets
 from datasets import load_dataset, Dataset, DatasetDict
-from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArguments, pipeline
-from FileEncoder import FileEncoder
+from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArguments
 import tempfile
 import torch
 
@@ -14,13 +13,14 @@ class Transformer:
         # from HuggingFace datasets documentation https://huggingface.co/docs/datasets/index
         datasets.utils.logging.set_verbosity_error() # https://github.com/huggingface/datasets/issues/1627 
         train_dataset = Dataset.from_dict({"text": train_data})
-        train_dataset = train_dataset.shuffle(seed=seed).select(range(len(train_dataset) // 500))
 
         if generate:
+            train_dataset = train_dataset.shuffle(seed=seed).select(range(len(train_dataset)))
             dataset = DatasetDict({"train": train_dataset})
         else:
+            train_dataset = train_dataset.shuffle(seed=seed).select(range(len(train_dataset) // 500))
             valid_dataset = Dataset.from_dict({"text": valid_data})
-            valid_dataset = valid_dataset.shuffle(seed=seed).select(range(len(valid_dataset) // 100))
+            valid_dataset = valid_dataset.shuffle(seed=seed).select(range(len(valid_dataset) // 500))
             dataset = DatasetDict({"train": train_dataset, "valid": valid_dataset})
 
         tokenized_dataset = dataset.map(
@@ -43,6 +43,7 @@ class Transformer:
 
         self.train(model, training_args, tokenized_dataset)
         
+        # generation from https://huggingface.co/docs/transformers/v4.47.0/en/model_doc/gpt2
         if generate:
             device = torch.device("cpu")
             model.to(device)
@@ -51,8 +52,9 @@ class Transformer:
             gen_tokens = model.generate(
                 input_ids,
                 do_sample=True,
-                max_length=256,
-                temperature=0.5,
+                max_length=len(input_ids[0]) + 256,
+                temperature=0.3,
+                top_p=0.95,
             )
             self.gen_text = self.tokenizer.batch_decode(gen_tokens)[0]
         else:
@@ -91,4 +93,3 @@ class Transformer:
 
         perplexity = torch.exp(loss)
         return perplexity.item()
-    

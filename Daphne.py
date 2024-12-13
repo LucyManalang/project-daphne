@@ -21,10 +21,10 @@ class Daphne:
 
     def get_unicode(self) -> list:
         """
-        Returns a list of all 6398 unicode characters in the Unicode Private Use Area
+        Returns a list of all 65,534 unicode characters in the Unicode Private Use Area A
         """
         chars = []
-        for hex in range(57344, 63742):
+        for hex in range(983040, 1048573):
             uni = chr(hex)
             chars.append(uni)
         return chars
