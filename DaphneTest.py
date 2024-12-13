@@ -6,17 +6,18 @@ class TestDaphne(unittest.TestCase):
     def setUp(self):
         self.vocab = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!.,;:?1234567890 ")
         self.daphne = Daphne(self.vocab, seed=0)
+        self.len = 65533
 
     def test_correct_num_uni_per_char(self):
-        self.assertEqual(self.daphne.num_uni_per_char, int(6398 / len(self.vocab)) - 1)
+        self.assertEqual(self.daphne.num_uni_per_char, int(self.len / len(self.vocab)) - 1)
     
     def test_get_unicode(self):
         unicode_list = self.daphne.get_unicode()
-        self.assertEqual(len(unicode_list), 6398)
+        self.assertEqual(len(unicode_list), self.len)
 
         all_in_pua = True
         for uni in unicode_list:
-            if ord(uni) not in range(57344, 63742):
+            if ord(uni) not in range(983040, 1048573):
                 all_in_pua = False
                 break
         self.assertTrue(all_in_pua)
