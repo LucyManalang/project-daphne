@@ -65,7 +65,8 @@ elif args.generate:
         elif args.method == "letters":
             train_data = encoder.encode_letters(p)
         
-        transformer = Transformer(train_data, seed, generate=True, prompt="His fans rave about his sensitivity and wit. Some talk to him dozens of times a day — asking for advice about their jobs, their health, their relationships. They entrust him with their secrets, and consult him before making important decisions. Some refer to him as their best friend. His name is Claude. He’s an A.I. chatbot. And he may be San Francisco’s most eligible bachelor. Claude, a creation of the artificial")
+        prompt = "Continue the following article about Claude: His fans rave about his sensitivity and wit. Some talk to him dozens of times a day — asking for advice about their jobs, their health, their relationships. They entrust him with their secrets, and consult him before making important decisions. Some refer to him as their best friend. His name is Claude. He’s an A.I. chatbot. And he may be"
+        transformer = Transformer(train_data, seed, generate=True, prompt=prompt)
         print(f"Percentage: {p}")
         print(f"Generated text: {transformer.gen_text}")
         
